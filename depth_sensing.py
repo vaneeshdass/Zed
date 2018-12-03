@@ -20,7 +20,16 @@ def current_date_time():
     return current_date_time
 
 
-log_file_path = os.path.join(os.getcwd() + '/zed/', current_date_time() + '.csv')
+def create_dir():
+    # create dir based on current date time
+    time_stamp = current_date_time()
+    os.mkdir('./zed/' + time_stamp)
+    dir_path = './zed/' + time_stamp
+    return dir_path
+
+
+directory_path = create_dir()
+log_file_path = os.path.join(directory_path, current_date_time() + '.csv')
 
 
 def main():
@@ -50,6 +59,8 @@ def main():
     depth = core.PyMat()
     point_cloud = core.PyMat()
 
+    # directory_path = create_dir()
+
     # for log file name time stamping
 
     while i < 50:
@@ -72,12 +83,12 @@ def main():
             timestamp = zed.get_timestamp(
                 sl.PyTIME_REFERENCE.PyTIME_REFERENCE_CURRENT)  # Get the timestamp at the time the image was captured
             left_image_path = timestamp.__str__() + '_L' + '.png'
-            right_image_path = timestamp.__str__() + '_R' + '.png'
-            depth_image_path = left_image_path.replace('.png', '') + '_D' + '.png'
+            right_image_path = left_image_path.replace('_L.png', '') + '_R' + '.png'
+            depth_image_path = left_image_path.replace('_L.png', '') + '_D' + '.png'
 
-            cv2.imwrite('./zed/' + left_image_path, left_image.get_data())
-            cv2.imwrite('./zed/' + right_image_path, right_image.get_data())
-            cv2.imwrite('./zed/' + depth_image_path, depth.get_data())
+            cv2.imwrite(directory_path + '/' + left_image_path, left_image.get_data())
+            cv2.imwrite(directory_path + '/' + right_image_path, right_image.get_data())
+            cv2.imwrite(directory_path + '/' + depth_image_path, depth.get_data())
 
             # Get and print distance value in mm at the center of the image
             # We measure the distance camera - object using Euclidean distance
@@ -112,7 +123,7 @@ def write_log(log_values, i):
     f = open(log_file_path, 'a')
     writer = csv.writer(f, delimiter=',')
     if (i == 0):
-        header = ['Image Name', 'Depth Value', 'Point Cloud Depth', 'X point', 'Y point', 'Z point']
+        header = ['ImageName', 'DepthValue', 'PointCloudDepth', 'Xpoint', 'Ypoint', 'Zpoint']
         writer.writerow(header)
     writer.writerow(log_values)
     f.close()
