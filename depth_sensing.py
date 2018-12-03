@@ -45,7 +45,8 @@ def main():
 
     # Capture 50 images and depth, then stopdepth
     i = 0
-    image = core.PyMat()
+    right_image = core.PyMat()
+    left_image = core.PyMat()
     depth = core.PyMat()
     point_cloud = core.PyMat()
 
@@ -55,7 +56,9 @@ def main():
         # A new image is available if grab() returns PySUCCESS
         if zed.grab(runtime_parameters) == tp.PyERROR_CODE.PySUCCESS:
             # Retrieve left image
-            zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)
+            zed.retrieve_image(left_image, sl.PyVIEW.PyVIEW_LEFT)
+            # Retrieve right image
+            zed.retrieve_image(right_image, sl.PyVIEW.PyVIEW_RIGHT)
             # Retrieve depth map. Depth is aligned on the left image
             zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
             # Retrieve colored point cloud. Point cloud is aligned on the left image.
@@ -68,16 +71,18 @@ def main():
             # saving image on disk
             timestamp = zed.get_timestamp(
                 sl.PyTIME_REFERENCE.PyTIME_REFERENCE_CURRENT)  # Get the timestamp at the time the image was captured
-            image_path = timestamp.__str__() + '.png'
-            depth_image_path = image_path.replace('.png', '') + '_D' + '.png'
+            left_image_path = timestamp.__str__() + '_L' + '.png'
+            right_image_path = timestamp.__str__() + '_R' + '.png'
+            depth_image_path = left_image_path.replace('.png', '') + '_D' + '.png'
 
-            cv2.imwrite('./zed/' + image_path, image.get_data())
+            cv2.imwrite('./zed/' + left_image_path, left_image.get_data())
+            cv2.imwrite('./zed/' + right_image_path, right_image.get_data())
             cv2.imwrite('./zed/' + depth_image_path, depth.get_data())
 
             # Get and print distance value in mm at the center of the image
             # We measure the distance camera - object using Euclidean distance
-            x = round(image.get_width() / 2)
-            y = round(image.get_height() / 2)
+            x = round(left_image.get_width() / 2)
+            y = round(left_image.get_height() / 2)
             err, point_cloud_value = point_cloud.get_value(x, y)
 
             distance = math.sqrt(point_cloud_value[0] * point_cloud_value[0] +
@@ -85,7 +90,7 @@ def main():
                                  point_cloud_value[2] * point_cloud_value[2])
 
             # forming list of values for image name, dumping depth, point cloud depth, x, y, z
-            log_values = [image_path.__str__(), depth.get_value(x, y)[1], distance, point_cloud_value[0],
+            log_values = [left_image_path.__str__(), depth.get_value(x, y)[1], distance, point_cloud_value[0],
                           point_cloud_value[1],
                           point_cloud_value[2]]
             write_log(log_values, i)
