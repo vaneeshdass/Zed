@@ -20,7 +20,7 @@ def current_date_time():
     return current_date_time
 
 
-log_file_path = os.path.join(os.getcwd(), current_date_time() + '.csv')
+log_file_path = os.path.join(os.getcwd() + '/zed/', current_date_time() + '.csv')
 
 
 def main():
@@ -31,6 +31,8 @@ def main():
     init_params = zcam.PyInitParameters()
     init_params.depth_mode = sl.PyDEPTH_MODE.PyDEPTH_MODE_PERFORMANCE  # Use PERFORMANCE depth mode
     init_params.coordinate_units = sl.PyUNIT.PyUNIT_CENTIMETER  # Use milliliter units (for depth measurements)
+    init_params.camera_fps = 15  # camera FPS
+    init_params.camera_resolution = sl.PyRESOLUTION.PyRESOLUTION_HD1080  # camera resolution
 
     # Open the camera
     err = zed.open(init_params)
@@ -67,10 +69,10 @@ def main():
             timestamp = zed.get_timestamp(
                 sl.PyTIME_REFERENCE.PyTIME_REFERENCE_CURRENT)  # Get the timestamp at the time the image was captured
             image_path = timestamp.__str__() + '.png'
-            depth_image_path = image_path + '_D' + '.png'
+            depth_image_path = image_path.replace('.png', '') + '_D' + '.png'
 
-            cv2.imwrite('./images/' + image_path, image.get_data())
-            cv2.imwrite('./images/' + depth_image_path, depth.get_data())
+            cv2.imwrite('./zed/' + image_path, image.get_data())
+            cv2.imwrite('./zed/' + depth_image_path, depth.get_data())
 
             # Get and print distance value in mm at the center of the image
             # We measure the distance camera - object using Euclidean distance
@@ -82,10 +84,11 @@ def main():
                                  point_cloud_value[1] * point_cloud_value[1] +
                                  point_cloud_value[2] * point_cloud_value[2])
 
-            # forming list of values for dumping depth, point_cloud_depth, x, y, z
-            log_values = [image_path.__str__(), depth.get_value(x, y)[1], point_cloud_value[0], point_cloud_value[1],
+            # forming list of values for image name, dumping depth, point cloud depth, x, y, z
+            log_values = [image_path.__str__(), depth.get_value(x, y)[1], distance, point_cloud_value[0],
+                          point_cloud_value[1],
                           point_cloud_value[2]]
-            write_log(log_values)
+            write_log(log_values, i)
 
             if not np.isnan(distance) and not np.isinf(distance):
                 distance = round(distance)
@@ -100,15 +103,12 @@ def main():
     zed.close()
 
 
-def current_date_time():
-    ts = time.time()
-    current_date_time = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-    return current_date_time
-
-
-def write_log(log_values):
+def write_log(log_values, i):
     f = open(log_file_path, 'a')
     writer = csv.writer(f, delimiter=',')
+    if (i == 0):
+        header = ['Image Name', 'Depth Value', 'Point Cloud Depth', 'X point', 'Y point', 'Z point']
+        writer.writerow(header)
     writer.writerow(log_values)
     f.close()
 
