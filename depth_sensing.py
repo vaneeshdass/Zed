@@ -4,7 +4,6 @@ import math
 import os
 import sys
 import time
-import timeit
 
 import cv2
 import numpy as np
@@ -59,12 +58,12 @@ def main():
     left_image = core.PyMat()
     depth = core.PyMat()
     point_cloud = core.PyMat()
-
-    # directory_path = create_dir()
+    # this varaible we only used to display the depth view. its display in 8 bit
+    depth_image_for_view_8_bit = core.PyMat()
 
     # for log file name time stamping
 
-    while i < 50:
+    while True:
         # A new image is available if grab() returns PySUCCESS
         if zed.grab(runtime_parameters) == tp.PyERROR_CODE.PySUCCESS:
             # Retrieve left image
@@ -74,11 +73,9 @@ def main():
             # Retrieve depth map. Depth is aligned on the left image
             zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
             # Retrieve colored point cloud. Point cloud is aligned on the left image.
-            start = timeit.default_timer()
             zed.retrieve_measure(point_cloud, sl.PyMEASURE.PyMEASURE_XYZRGBA)
-            stop = timeit.default_timer()
-
-            print('Time took for pointcloud calculations: ', stop - start)
+            # Retrieve depth image for display only
+            zed.retrieve_image(depth_image_for_view_8_bit, sl.PyVIEW.PyVIEW_DEPTH)
 
             # saving image on disk
             timestamp = zed.get_timestamp(
@@ -91,9 +88,16 @@ def main():
             cv2.imwrite(directory_path + '/' + right_image_path, right_image.get_data())
             cv2.imwrite(directory_path + '/' + depth_image_path, depth.get_data())
 
-            # displaying image
+            # displaying images left view and depth view
             cv2.imshow('left image', left_image.get_data())
-            cv2.imshow('depth image', depth.get_data())
+            cv2.imshow('depth image', depth_image_for_view_8_bit.get_data())
+            key = cv2.waitKey(1)
+
+            if key == 27:  # if ESC is pressed, exit loop
+                cv2.destroyAllWindows()
+                break
+
+            # cv2.destroyAllWindows()
 
             # Get and print distance value in mm at the center of the image
             # We measure the distance camera - object using Euclidean distance
@@ -122,6 +126,7 @@ def main():
 
     # Close the camera
     zed.close()
+    print('-------------------------program ends------------------------------')
 
 
 def write_log(log_values, i):
