@@ -38,7 +38,8 @@ def main():
 
     # Create a PyInitParameters object and set configuration parameters
     init_params = zcam.PyInitParameters()
-    init_params.depth_mode = sl.PyDEPTH_MODE.PyDEPTH_MODE_PERFORMANCE  # Use PERFORMANCE depth mode
+    # These settings adjust the level of accuracy, range and computational performance of the depth sensing module. available modes are Ultra, quality, medium & performance
+    init_params.depth_mode = sl.PyDEPTH_MODE.PyDEPTH_MODE_ULTRA  # Use ULTRA depth mode for better depth accuracy
     init_params.coordinate_units = sl.PyUNIT.PyUNIT_CENTIMETER  # Use milliliter units (for depth measurements)
     init_params.camera_fps = 15  # camera FPS
     init_params.camera_resolution = sl.PyRESOLUTION.PyRESOLUTION_HD1080  # camera resolution
@@ -89,6 +90,10 @@ def main():
             cv2.imwrite(directory_path + '/' + left_image_path, left_image.get_data())
             cv2.imwrite(directory_path + '/' + right_image_path, right_image.get_data())
             cv2.imwrite(directory_path + '/' + depth_image_path, depth.get_data())
+
+            # displaying image
+            cv2.imshow('left image', left_image.get_data())
+            cv2.imshow('depth image', depth.get_data())
 
             # Get and print distance value in mm at the center of the image
             # We measure the distance camera - object using Euclidean distance
