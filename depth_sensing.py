@@ -22,6 +22,8 @@ def current_date_time():
 def create_dir():
     # create dir based on current date time
     time_stamp = current_date_time()
+    if not os.path.exists('zed'):
+        os.mkdir('./zed')
     os.mkdir('./zed/' + time_stamp)
     dir_path = './zed/' + time_stamp
     return dir_path
@@ -37,7 +39,8 @@ def main():
 
     # Create a PyInitParameters object and set configuration parameters
     init_params = zcam.PyInitParameters()
-    # These settings adjust the level of accuracy, range and computational performance of the depth sensing module. available modes are Ultra, quality, medium & performance
+    # These settings adjust the level of accuracy, range and computational performance of the depth sensing module.
+    # available modes are Ultra, quality, medium & performance
     init_params.depth_mode = sl.PyDEPTH_MODE.PyDEPTH_MODE_ULTRA  # Use ULTRA depth mode for better depth accuracy
     init_params.coordinate_units = sl.PyUNIT.PyUNIT_CENTIMETER  # Use milliliter units (for depth measurements)
     init_params.camera_fps = 15  # camera FPS
