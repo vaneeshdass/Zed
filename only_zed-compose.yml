@@ -1,0 +1,19 @@
+version: '3.6'
+services:
+  v1.2:
+    image: "vaneeshdass/zed:v1.1"
+    ports:
+      - "5432:22"
+    privileged: true
+    environment:
+      - DISPLAY=
+      - QT_X11_NO_MITSHM=1
+      - NVIDIA_VISIBLE_DEVICES=1
+    volumes:
+      - /home/vaneesh/PycharmProjects/Zed/:/root/pycharm/zed-python/pyzed/Zed/
+      - /home/vaneesh/PycharmProjects/Zed/:/tmp/darknet/python
+      - /tmp/.X11-unix:/tmp/.X11-unix
+
+
+
+

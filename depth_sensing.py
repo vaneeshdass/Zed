@@ -55,7 +55,7 @@ def main():
     runtime_parameters = zcam.PyRuntimeParameters()
     runtime_parameters.sensing_mode = sl.PySENSING_MODE.PySENSING_MODE_FILL  # Use STANDARD sensing mode
 
-    # Capture 50 images and depth, then stopdepth
+    # Capture 50 images and depth, then stop depth
     i = 0
     right_image = core.PyMat()
     left_image = core.PyMat()
@@ -87,13 +87,26 @@ def main():
             right_image_path = left_image_path.replace('_L.png', '') + '_R' + '.png'
             depth_image_path = left_image_path.replace('_L.png', '') + '_D' + '.png'
 
-            cv2.imwrite(directory_path + '/' + left_image_path, left_image.get_data())
-            cv2.imwrite(directory_path + '/' + right_image_path, right_image.get_data())
-            cv2.imwrite(directory_path + '/' + depth_image_path, depth.get_data())
+            # flipping the image 180 degree(vertically)
+            left_flipped_image_180 = cv2.rotate(left_image.get_data(), rotateCode=cv2.ROTATE_180)
+            right_flipped_image_180 = cv2.rotate(right_image.get_data(), rotateCode=cv2.ROTATE_180)
+            depth_flipped_image_180 = cv2.rotate(depth.get_data(), rotateCode=cv2.ROTATE_180)
+
+            cv2.imwrite(directory_path + '/' + left_image_path, left_flipped_image_180)
+            cv2.imwrite(directory_path + '/' + right_image_path, right_flipped_image_180)
+            cv2.imwrite(directory_path + '/' + depth_image_path, depth_flipped_image_180)
+
+            # cv2.imwrite(directory_path + '/' + left_image_path, left_image.get_data())
+            # cv2.imwrite(directory_path + '/' + right_image_path, right_image.get_data())
+            # cv2.imwrite(directory_path + '/' + depth_image_path, depth.get_data())
 
             # displaying images left view and depth view
-            cv2.imshow('left image', left_image.get_data())
-            cv2.imshow('depth image', depth_image_for_view_8_bit.get_data())
+            cv2.imshow('left image', left_flipped_image_180)
+            cv2.imshow('depth image', depth_flipped_image_180)
+
+            # cv2.imshow('left image', left_image.get_data())
+            # cv2.imshow('depth image', depth_image_for_view_8_bit.get_data())
+
             key = cv2.waitKey(1)
 
             if key == 27:  # if ESC is pressed, exit loop
