@@ -1,6 +1,9 @@
 import random
 from ctypes import *
 
+import cv2
+import numpy as np
+
 
 def sample(probs):
     s = sum(probs)
@@ -148,14 +151,68 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
     return res
 
 
+def array_to_image(arr):
+    # need to return old values to avoid python freeing memory
+    arr = arr.transpose(2, 0, 1)
+    c, h, w = arr.shape[0:3]
+    arr = np.ascontiguousarray(arr.flat, dtype=np.float32) / 255.0
+    data = arr.ctypes.data_as(POINTER(c_float))
+    im = IMAGE(w, h, c, data)
+    return im, arr
+
+
+def run_on_image(net, meta, rgb_frame, thresh=.6, hier_thresh=.5, nms=.45):
+    classes_box_colors = [(0, 0, 255), (0, 255, 0)]  # red for palmup --> stop, green for thumbsup --> go
+    classes_font_colors = [(255, 255, 0), (0, 255, 255)]
+    count = 0
+
+    im, arr = array_to_image(rgb_frame)
+    num = c_int(0)
+    pnum = pointer(num)
+    predict_image(net, im)
+    dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, None, 0, pnum)
+    num = pnum[0]
+    if (nms): do_nms_obj(dets, num, meta.classes, nms);
+    for j in range(num):
+        for i in range(meta.classes):
+            if dets[j].prob[i] > 0:
+                b = dets[j].bbox
+                x1 = int(b.x - b.w / 2.)  # b.x b.y are midpoints of rectangle
+                y1 = int(b.y - b.h / 2.)
+                x2 = int(b.x + b.w / 2.)
+                y2 = int(b.y + b.h / 2.)
+                cv2.rectangle(rgb_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                # cv2.putText(rgb_frame, meta.names[i], (x1, y1 - 7), 1, 1, (0, 255, 255), 2, cv2.LINE_AA)
+
+    rgb_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGB2BGR)
+    cv2.imshow('Output', rgb_frame)
+
+    cv2.waitKey(0)
+
+
+def run_yolo(frame):
+    net = load_net(b"/tmp/darknet/cfg/yolov2.cfg", b"/tmp/darknet/yolov2.weights", 0)
+    meta = load_meta(b"/tmp/darknet/cfg/coco.data")
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    run_on_image(net, meta, rgb_frame)
+
+
 if __name__ == "__main__":
     # net = load_net("cfg/densenet201.cfg", "/home/pjreddie/trained/densenet201.weights", 0)
     # im = load_image("data/wolf.jpg", 0, 0)
     # meta = load_meta("cfg/imagenet1k.data")
     # r = classify(net, meta, im)
     # print r[:10]
-    net = load_net("/tmp/darknet/cfg/yolov2.cfg", "/tmp/darknet/yolov2.weights", 0)
-    meta = load_meta("/tmp/darknet/cfg/coco.data")
-    r = detect(net, meta, "/tmp/darknet/data/dog.jpg")
-    print
-    r
+    # try_show()
+    # exit(0)
+    net = load_net(b"/tmp/darknet/cfg/yolov2.cfg", b"/tmp/darknet/yolov2.weights", 0)
+    meta = load_meta(b"/tmp/darknet/cfg/coco.data")
+    # frame = cv2.imread("/images/2018-12-19 09_39_06/1545212417572821689_R.png")
+    frame = cv2.imread("/images/1545212530202352396_L.png")
+
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    run_on_image(net, meta, rgb_frame)
+
+    # r = detect(net, meta, "/images/2018-12-19 09_39_06/1545212417572821689_R.png")
+
+    # print r

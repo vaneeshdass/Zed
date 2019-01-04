@@ -6,11 +6,12 @@ import sys
 import time
 
 import cv2
-import numpy as np
 import pyzed.camera as zcam
 import pyzed.core as core
 import pyzed.defines as sl
 import pyzed.types as tp
+
+from yolov3_detection import *
 
 
 def current_date_time():
@@ -88,24 +89,25 @@ def main():
             depth_image_path = left_image_path.replace('_L.png', '') + '_D' + '.png'
 
             # flipping the image 180 degree(vertically)
-            left_flipped_image_180 = cv2.rotate(left_image.get_data(), rotateCode=cv2.ROTATE_180)
-            right_flipped_image_180 = cv2.rotate(right_image.get_data(), rotateCode=cv2.ROTATE_180)
-            depth_flipped_image_180 = cv2.rotate(depth.get_data(), rotateCode=cv2.ROTATE_180)
+            # left_flipped_image_180 = cv2.rotate(left_image.get_data(), rotateCode=cv2.ROTATE_180)
+            # right_flipped_image_180 = cv2.rotate(right_image.get_data(), rotateCode=cv2.ROTATE_180)
+            # depth_flipped_image_180 = cv2.rotate(depth.get_data(), rotateCode=cv2.ROTATE_180)
 
-            cv2.imwrite(directory_path + '/' + left_image_path, left_flipped_image_180)
-            cv2.imwrite(directory_path + '/' + right_image_path, right_flipped_image_180)
-            cv2.imwrite(directory_path + '/' + depth_image_path, depth_flipped_image_180)
+            # cv2.imwrite(directory_path + '/' + left_image_path, left_flipped_image_180)
+            # cv2.imwrite(directory_path + '/' + right_image_path, right_flipped_image_180)
+            # cv2.imwrite(directory_path + '/' + depth_image_path, depth_flipped_image_180)
 
             # cv2.imwrite(directory_path + '/' + left_image_path, left_image.get_data())
             # cv2.imwrite(directory_path + '/' + right_image_path, right_image.get_data())
             # cv2.imwrite(directory_path + '/' + depth_image_path, depth.get_data())
 
-            # displaying images left view and depth view
-            cv2.imshow('left image', left_flipped_image_180)
-            cv2.imshow('depth image', depth_flipped_image_180)
+            # displaying images left view and depth
+            # cv2.imshow('left image', left_flipped_image_180)
+            # cv2.imshow('depth image', depth_flipped_image_180)
 
-            # cv2.imshow('left image', left_image.get_data())
-            # cv2.imshow('depth image', depth_image_for_view_8_bit.get_data())
+            run_yolo(left_image.get_data())
+            cv2.imshow('left image', left_image.get_data())
+            cv2.imshow('depth image', depth_image_for_view_8_bit.get_data())
 
             key = cv2.waitKey(1)
 
