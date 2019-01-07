@@ -11,7 +11,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=1
     volumes:
       - /home/vaneesh/PycharmProjects/Zed/:/root/pycharm/zed-python/pyzed/Zed/
-      - /home/vaneesh/PycharmProjects/Zed/:/tmp/darknet/python
+      - /home/vaneesh/PycharmProjects/Zed/:/home/docker/zed-yolo/libdarknet/python
       - /tmp/.X11-unix:/tmp/.X11-unix
 
 

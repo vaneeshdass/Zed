@@ -1,18 +1,16 @@
 version: '3.6'
 services:
   yolov3:
-    image: "vaneeshdass/zed_with_yolov3:v2.2"
+    image: "vaneesh/zed_yolo_final:v9.1_calibration"
     ports:
       - "5432:22"
     privileged: true
     environment:
       - DISPLAY=
       - QT_X11_NO_MITSHM=1
-      - NVIDIA_VISIBLE_DEVICES=1
     volumes:
-      - /home/vaneesh/PycharmProjects/Zed/:/tmp/darknet/zed-python-api/pyzed/zed_pycharm
-      - /mnt/037211ed-090b-4f4c-90c2-56dd2e0b9ef1/tasks/zed/zed_images/chosen:/images
-      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /home/riteshm03/Downloads/Zed/:/tmp/darknet/zed-python-api/pyzed/zed_pycharm
+      - /tmp/.X11-unix:/tmp/.X11-unix/
 
 
 
