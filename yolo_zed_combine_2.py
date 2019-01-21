@@ -166,44 +166,98 @@ def array_to_image(arr):
     return im, arr
 
 
-def run_on_image(net, meta, rgb_frame, thresh=.6, hier_thresh=.5, nms=.45):
-    classes_box_colors = [(0, 0, 255), (0, 255, 0)]  # red for palmup --> stop, green for thumbsup --> go
-    classes_font_colors = [(255, 255, 0), (0, 255, 255)]
-    count = 0
-    check_list = ['car', 'pedestrian']
-    im, arr = array_to_image(rgb_frame)
+def run_on_image(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45, debug=False):
+    """
+    Performs the detection
+    """
+    class_list = ['person', 'car']
+    custom_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    custom_image = cv2.resize(custom_image, (lib.network_width(
+        net), lib.network_height(net)), interpolation=cv2.INTER_LINEAR)
+    im, arr = array_to_image(custom_image)
     num = c_int(0)
     pnum = pointer(num)
     predict_image(net, im)
-    dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, None, 0, pnum)
+    dets = get_network_boxes(
+        net, image.shape[1], image.shape[0], thresh, hier_thresh, None, 0, pnum, 0)
     num = pnum[0]
-    if (nms): do_nms_obj(dets, num, meta.classes, nms);
+    if nms:
+        do_nms_sort(dets, num, meta.classes, nms)
+    res = []
+    if debug:
+        print("about to range")
     for j in range(num):
         for i in range(meta.classes):
             if dets[j].prob[i] > 0:
                 b = dets[j].bbox
-                meta.names[i]
-                x1 = int(b.x - b.w / 2.)  # b.x b.y are midpoints of rectangle
-                y1 = int(b.y - b.h / 2.)
-                x2 = int(b.x + b.w / 2.)
-                y2 = int(b.y + b.h / 2.)
-                cv2.rectangle(rgb_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                # cv2.putText(rgb_frame, meta.names[i], (x1, y1 - 7), 1, 1, (0, 255, 255), 2, cv2.LINE_AA)
-
-    rgb_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGB2BGR)
+                lbl = meta.names[i].decode("utf-8")
+                class_flag = lbl in class_list
+                if class_flag == True:
+                    x1 = int(b.x - b.w / 2)
+                    y1 = int(b.y - b.h / 2)
+                    yExtent = int(b.h)
+                    xEntent = int(b.w)
+                    x2 = x1 + xEntent
+                    y2 = y1 + yExtent
+                    if x1 < 0:
+                        x1 = 0
+                    if y1 < 0:
+                        y1 = 0
+                    if x2 > image.shape[1] - 1:
+                        x2 = image.shape[1] - 1
+                    if y2 > image.shape[0] - 1:
+                        y2 = image.shape[0] - 1
+                    res.append((lbl, dets[j].prob[i], (x1, y1, x2, y2), i))
+    # res = sorted(res, key=lambda x: -x[1])
     free_detections(dets, num)
-    # cv2.imshow('Output', rgb_frame)
-    # cv2.waitKey(0)
-    return rgb_frame
+    return res
 
 
-def run_yolo(frame):
-    net = load_net(b"/tmp/darknet/cfg/yolov2.cfg", b"/tmp/darknet/yolov2.weights", 0)
-    meta = load_meta(b"/tmp/darknet/cfg/coco.data")
-    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    detected_image = run_on_image(net, meta, rgb_frame)
-    return detected_image
-
+def run_on_image_01(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45, debug=False):
+    """
+    Performs the detection
+    """
+    class_list = ['person', 'car']
+    custom_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    # custom_image = cv2.resize(custom_image, (lib.network_width(
+    # net), lib.network_height(net)), interpolation=cv2.INTER_LINEAR)
+    im, arr = array_to_image(custom_image)
+    num = c_int(0)
+    pnum = pointer(num)
+    predict_image(net, im)
+    dets = get_network_boxes(
+        net, image.shape[1], image.shape[0], thresh, hier_thresh, None, 0, pnum, 0)
+    num = pnum[0]
+    if nms:
+        do_nms_sort(dets, num, meta.classes, nms)
+    res = []
+    if debug:
+        print("about to range")
+    for j in range(num):
+        for i in range(meta.classes):
+            if dets[j].prob[i] > 0:
+                b = dets[j].bbox
+                lbl = meta.names[i].decode("utf-8")
+                class_flag = lbl in class_list
+                if class_flag == True:
+                    x1 = int(b.x - b.w / 2)
+                    y1 = int(b.y - b.h / 2)
+                    yExtent = int(b.h)
+                    xEntent = int(b.w)
+                    x2 = x1 + xEntent
+                    y2 = y1 + yExtent
+                    if x1 < 0:
+                        x1 = 0
+                    if y1 < 0:
+                        y1 = 0
+                    if x2 > image.shape[1] - 1:
+                        x2 = image.shape[1] - 1
+                    if y2 > image.shape[0] - 1:
+                        y2 = image.shape[0] - 1
+                    res.append((lbl, dets[j].prob[i], (x1, y1, x2, y2), i))
+    # res = sorted(res, key=lambda x: -x[1])
+    free_detections(dets, num)
+    return res
 
 # net = load_net(b"/tmp/darknet/cfg/yolov2.cfg", b"/tmp/darknet/yolov2.weights", 0)
 # meta = load_meta(b"/tmp/darknet/cfg/coco.data")
@@ -251,12 +305,29 @@ def main():
     images_dir = '/tmp/darknet/zed-python-api/pyzed/zed_pycharm/Images'
     list_images = get_img_list(images_dir, ext='png')
     for item in list_images:
-        image_matrix = cv2.imread(item)
-        rgb_frame = cv2.cvtColor(image_matrix, cv2.COLOR_BGR2RGB)
-        detected_image = run_on_image(net, meta, rgb_frame)
+        frame = cv2.imread(item)
+        frame = cv2.resize(frame, (lib.network_width(
+            net), lib.network_height(net)), interpolation=cv2.INTER_LINEAR)
+        out_list = run_on_image_01(net, meta, frame)
+        for item in out_list:
+            lbl = item[0]
+            roi = item[2]
+            x_mid = int((roi[0] + roi[2]) / 2)
+            y_mid = int((roi[1] + roi[3]) / 2)
+            # dist = get_depth(x_mid, y_mid, point_cloud)
+            cv2.rectangle(frame, (roi[0], roi[1]), (roi[2], roi[3]), (0, 255, 0), 2)
+            cv2.putText(frame, lbl, (roi[0] + 2, roi[1] + 15), 1, 1,
+                        (0, 255, 255), 2, cv2.LINE_AA)
+
         print('done')
-        cv2.imshow('detected image', detected_image)
-        cv2.waitKey(0)
+        frame = cv2.resize(frame, (1280, 960), interpolation=cv2.INTER_LINEAR)
+        cv2.imshow('Detected_Output_Image', frame)
+        key = cv2.waitKey(0)
+
+        if key == 27:  # if ESC is pressed, exit loop
+            cv2.destroyAllWindows()
+            break
+    print('-------------------------program ends------------------------------')
 
     print('-------------------------program ends------------------------------')
 
