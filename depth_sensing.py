@@ -5,7 +5,6 @@ import os
 import sys
 import time
 
-import cv2
 import pyzed.camera as zcam
 import pyzed.core as core
 import pyzed.defines as sl
@@ -105,7 +104,7 @@ def main():
             # cv2.imshow('left image', left_flipped_image_180)
             # cv2.imshow('depth image', depth_flipped_image_180)
 
-            run_yolo(left_image.get_data())
+            # run_yolo(left_image.get_data())
             cv2.imshow('left image', left_image.get_data())
             cv2.imshow('depth image', depth_image_for_view_8_bit.get_data())
 
