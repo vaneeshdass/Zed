@@ -1,8 +1,12 @@
 import cv2
 
-# Load an color image in grayscale
-img = cv2.imread('/root/pycharm/zed-python/pyzed/test.png', 0)
-cv2.imshow('image', img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-print('done')
+img = cv2.imread('/home/riteshm03/Downloads/Zed/Images/test.png')  # load a dummy image
+while (1):
+    # cv2.imshow('img',img)
+    k = cv2.waitKey(33)
+    if k == 27:  # Esc key to stop
+        break
+    elif k == -1:  # normally -1 returned,so don't print it
+        continue
+    else:
+        print(k)  # else print its valuefff

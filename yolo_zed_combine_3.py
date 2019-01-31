@@ -295,7 +295,7 @@ def new_res_value(res, new_coordinates):
 
 def run_on_image_ref_bak(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45, debug=False):
     """
-    Performs the detection on image
+    Performs the detection
     """
     class_list = ['person', 'car']
     custom_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
