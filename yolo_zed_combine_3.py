@@ -4,6 +4,7 @@ import glob
 import math
 import os
 import random
+import statistics
 import time
 from ctypes import *
 
@@ -288,7 +289,8 @@ def new_res_value(res, new_coordinates):
     i = 0
     for item in res:
         res2.append((item[0], item[1], (
-        new_coordinates[0][i], new_coordinates[1][i], new_coordinates[0][i + 1], new_coordinates[1][i + 1]), item[3]))
+            new_coordinates[0][i], new_coordinates[1][i], new_coordinates[0][i + 1], new_coordinates[1][i + 1]),
+                     item[3]))
         i = i + 2
     return res2
 
@@ -460,15 +462,17 @@ def main():
             for item in out_list:
                 lbl = item[0]
                 roi = item[2]
-                x_mid = int((roi[0] + roi[2]) / 2)
-                y_mid = int((roi[1] + roi[3]) / 2)
-                dist = round(get_depth(x_mid, y_mid, point_cloud), 2)
-                dist = get_depth(x_mid, y_mid, point_cloud)
+                # x_mid = int((roi[0] + roi[2]) / 2)
+                # y_mid = int((roi[1] + roi[3]) / 2)
+                x, y, z = get_depth_new(point_cloud.get_data(), roi)
+                dist = math.sqrt(x * x + y * y + z * z)
                 dist = "{0:.2f}".format(dist)
 
                 cv2.rectangle(frame, (int(roi[0]), int(roi[1])), (int(roi[2]), int(roi[3])), (0, 255, 0), 2)
-                # cv2.putText(frame, lbl + ' ' + dist + ' mtr', (roi[0] + 2, roi[1] + 15), 1, 1,(0, 255, 255), 2, cv2.LINE_AA)
-
+                # cv2.putText(frame, lbl + ' ' + int(dist) + ' mtr', (roi[0] + 2, roi[1] + 15), 1, 1,(0, 255, 255), 2, cv2.LINE_AA)
+                cv2.putText(frame, 'Class = ' + str(lbl) + ' ' + str(dist) + ' mtrs',
+                            (int(roi[0]) + 2, int(roi[1]) + 15), 1, 1,
+                            (0, 255, 255), 2, cv2.LINE_AA)
             print('done')
             # frame = cv2.resize(frame, (1280, 960), interpolation=cv2.INTER_LINEAR)
             cv2.imshow('Detected_Output_Image', frame)
@@ -492,6 +496,33 @@ def get_depth(x, y, point_cloud):
     return distance
 
 
+def get_depth_new(depth_vector, coordinates):
+    x_vect = []
+    y_vect = []
+    z_vect = []
+
+    area_div = -1 * (0.1 * (coordinates[0] - coordinates[2]))
+
+    for j in range(int(coordinates[0] + area_div), int(coordinates[2] - area_div)):
+        for i in range(int(coordinates[1] + area_div), int(coordinates[3] - area_div)):
+            z = depth_vector[i, j, 2]
+            if not np.isnan(z) and not np.isinf(z):
+                x_vect.append(depth_vector[i, j, 0])
+                y_vect.append(depth_vector[i, j, 1])
+                z_vect.append(z)
+    try:
+        x = statistics.median(x_vect)
+        y = statistics.median(y_vect)
+        z = statistics.median(z_vect)
+    except Exception:
+        x = -1
+        y = -1
+        z = -1
+        pass
+
+    return x, y, z
+
+
 def write_log(log_values, i):
     f = open(log_file_path, 'a')
     writer = csv.writer(f, delimiter=',')
@@ -503,4 +534,5 @@ def write_log(log_values, i):
 
 
 if __name__ == "__main__":
-    main_without_zed()
+    # main_without_zed()
+    main()

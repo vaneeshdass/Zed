@@ -2,6 +2,7 @@ version: '3.6'
 services:
   yolov3:
     image: "vaneesh/zed_yolo_final:v1.2"
+    #    image: "vaneeshdass/zed_yolo_official:v1.1"
     ports:
       - "5412:22"
     privileged: true
@@ -9,7 +10,7 @@ services:
       - DISPLAY=
       - QT_X11_NO_MITSHM=1
     volumes:
-      - /home/riteshm03/Downloads/Zed/:/tmp/darknet/zed-python-api/pyzed/zed_pycharm
+      #      - /home/riteshm03/Downloads/Zed/:/tmp/darknet/zed-python-api/pyzed/zed_pycharm
       - /tmp/.X11-unix:/tmp/.X11-unix/
 
 
