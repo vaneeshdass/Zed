@@ -436,7 +436,7 @@ def main():
     depth_image_for_view_8_bit = core.PyMat()
 
     # for log file name time stamping
-
+    flip_image = False
     while True:
         # A new image is available if grab() returns PySUCCESS
         if zed.grab(runtime_parameters) == tp.PyERROR_CODE.PySUCCESS:
@@ -454,9 +454,15 @@ def main():
             # flipping the image 180 degree(vertically)
             # left_flipped_image_180 = cv2.rotate(left_image.get_data(), rotateCode=cv2.ROTATE_180)
 
-            frame = left_image.get_data()
+
             # frame = cv2.resize(frame, (lib.network_width(
             # net), lib.network_height(net)), interpolation=cv2.INTER_LINEAR)
+
+            if flip_image:
+                frame = cv2.rotate(left_image.get_data(), rotateCode=cv2.ROTATE_180)
+
+            else:
+                frame = left_image.get_data()
 
             out_list = run_on_image_ref_bak(net, meta, frame)
             for item in out_list:
@@ -481,6 +487,9 @@ def main():
             if key == 27:  # if ESC is pressed, exit loop
                 cv2.destroyAllWindows()
                 break
+
+            elif key == 102 or key == 70:  # if f is pressed then flipped the image
+                flip_image = not flip_image
     print('-------------------------program ends------------------------------')
 
 
